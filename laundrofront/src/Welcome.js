@@ -7,7 +7,7 @@ function Welcome() {
   useEffect(() => {
     axios.get('http://localhost:8081/welcome')
       .then(response => {
-        setName(response.data.name);
+        setName(response.data); // Ensure response.data contains the user's name
       })
       .catch(error => {
         console.error('There was an error fetching the user!', error);
