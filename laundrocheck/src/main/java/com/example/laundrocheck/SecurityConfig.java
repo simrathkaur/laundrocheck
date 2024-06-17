@@ -1,3 +1,5 @@
+
+
 package com.example.laundrocheck;
 
 import org.springframework.context.annotation.Bean;
@@ -21,14 +23,14 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2Login ->
                         oauth2Login
-                                .defaultSuccessUrl("/success", true)
+                                .defaultSuccessUrl("http://localhost:3000/user-email", true)
                                 .failureUrl("/failure")
                 )
                 .sessionManagement(sessionManagement ->
                         sessionManagement
                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .csrf(csrf -> csrf.disable()); // Disable CSRF for simplicity in this example, but consider enabling it in production
+                .csrf(csrf -> csrf.disable());
         return http.build();
     }
 }

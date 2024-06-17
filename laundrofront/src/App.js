@@ -1,17 +1,14 @@
+// src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Login from './Login';
-import Welcome from './Welcome';
-import Hostel from './Hostel';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import UserEmail from './UserEmail'; // Adjust the path based on your project structure
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/hostel" element={<Hostel />} />
-        <Route path="*" element={<Navigate to="/" />} /> {/* Redirect all unknown routes to login */}
+        <Route path="/user-email" element={<UserEmail />} />
+        {/* Other routes */}
       </Routes>
     </Router>
   );
