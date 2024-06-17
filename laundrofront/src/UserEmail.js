@@ -11,7 +11,7 @@ const UserEmail = () => {
                 const response = await axios.get('http://localhost:8081/user-info', { withCredentials: true });
                 setEmail(response.data);
 
-                const machineResponse = await axios.get('http://localhost:8081/machine-status', { withCredentials: true });
+                const machineResponse = await axios.get('http://localhost:8081/api/status/machine-status', { withCredentials: true });
                 setMachines(machineResponse.data);
             } catch (error) {
                 console.error('Error fetching user data:', error.response ? error.response.data : error.message);
@@ -23,9 +23,11 @@ const UserEmail = () => {
 
     const handleMachineClick = async (machineId, action) => {
         try {
-            const response = await axios.put(`http://localhost:8081/machine/${machineId}/${action}`, {}, { withCredentials: true });
+            const response = await axios.put(`http://localhost:8081/api/status/machine/${machineId}/${action}`, {}, { withCredentials: true });
             // Assuming your API updates the machine status and returns updated data
-            setMachines(response.data);
+            setMachines(prevMachines => prevMachines.map(machine => 
+                machine.id === machineId ? response.data : machine
+            ));
         } catch (error) {
             console.error('Error updating machine status:', error.response ? error.response.data : error.message);
         }
