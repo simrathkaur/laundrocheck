@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import moment from 'moment';  
+import 'moment-duration-format';
+
+
 
 const UserEmail = () => {
     const [email, setEmail] = useState('');
@@ -23,8 +27,8 @@ const UserEmail = () => {
 
     const handleMachineClick = async (machineId, action) => {
         try {
-            const response = await axios.put(`http://localhost:8081/api/status/machine/${machineId}/${action}`, {}, { withCredentials: true });
-            // Assuming your API updates the machine status and returns updated data
+            const payload = action === 'start' ? { email } : {}; // Include email if action is 'start'
+            const response = await axios.put(`http://localhost:8081/api/status/machine/${machineId}/${action}`, payload, { withCredentials: true });
             setMachines(prevMachines => prevMachines.map(machine => 
                 machine.id === machineId ? response.data : machine
             ));
@@ -32,6 +36,20 @@ const UserEmail = () => {
             console.error('Error updating machine status:', error.response ? error.response.data : error.message);
         }
     };
+    const calculateDuration = (startTime) => {
+        const start = moment(startTime);
+        const now = moment();
+        const duration = moment.duration(now.diff(start));
+        return duration.format('HH:mm:ss');
+    };
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setMachines(machines => [...machines]); // Trigger re-render to update durations
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
 
     return (
         <div>
@@ -42,6 +60,9 @@ const UserEmail = () => {
                     <div key={machine.id}>
                         <h3>Machine ID: {machine.id}</h3>
                         <p>Status: {machine.available ? 'Available' : machine.inUse ? 'In Use' : 'Done'}</p>
+                        {machine.inUse && machine.startTime && (
+                            <p>Washing for: {calculateDuration(machine.startTime)}</p>
+                        )}
                         {machine.available && (
                             <button style={{ backgroundColor: 'green' }} onClick={() => handleMachineClick(machine.id, 'start')}>
                                 Click to use

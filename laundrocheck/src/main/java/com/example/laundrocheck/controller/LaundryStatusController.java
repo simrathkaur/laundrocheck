@@ -6,6 +6,7 @@ import com.example.laundrocheck.service.LaundryStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -26,7 +27,7 @@ public class LaundryStatusController {
     }
 
     @PutMapping("/machine/{id}/{action}")
-    public LaundryStatus updateMachineStatus(@PathVariable Long id, @PathVariable String action) {
+    public LaundryStatus updateMachineStatus(@PathVariable Long id, @PathVariable String action, @RequestBody(required = false) String userEmail) {
         LaundryStatus machine = laundryStatusRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Machine not found"));
 
@@ -35,6 +36,8 @@ public class LaundryStatusController {
                 if (machine.getAvailable()) {
                     machine.setAvailable(false);
                     machine.setInUse(true);
+                    machine.setUserEmail(userEmail);
+                    machine.setStartTime(LocalDateTime.now());
                 }
                 break;
             case "done":
@@ -47,6 +50,8 @@ public class LaundryStatusController {
                 if (machine.getDone()) {
                     machine.setDone(false);
                     machine.setAvailable(true);
+                    machine.setUserEmail(null);
+                    machine.setStartTime(null);
                 }
                 break;
             default:
