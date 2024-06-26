@@ -3,9 +3,8 @@ import axios from 'axios';
 import moment from 'moment';  
 import 'moment-duration-format';
 
-
-
 const UserEmail = () => {
+    const [interested, setInterested] = useState(false);
     const [email, setEmail] = useState('');
     const [machines, setMachines] = useState([]);
 
@@ -17,6 +16,10 @@ const UserEmail = () => {
 
                 const machineResponse = await axios.get('http://localhost:8081/api/status/machine-status', { withCredentials: true });
                 setMachines(machineResponse.data);
+
+                // Check if the user is already interested
+                const interestResponse = await axios.get(`http://localhost:8081/api/interested/is-interested?email=${response.data}`, { withCredentials: true });
+                setInterested(interestResponse.data);
             } catch (error) {
                 console.error('Error fetching user data:', error.response ? error.response.data : error.message);
             }
@@ -27,7 +30,7 @@ const UserEmail = () => {
 
     const handleMachineClick = async (machineId, action) => {
         try {
-            const payload = action === 'start' ? { email } : {}; // Include email if action is 'start'
+            const payload = action === 'start' ? { email } : {};
             const response = await axios.put(`http://localhost:8081/api/status/machine/${machineId}/${action}`, payload, { withCredentials: true });
             setMachines(prevMachines => prevMachines.map(machine => 
                 machine.id === machineId ? response.data : machine
@@ -36,6 +39,7 @@ const UserEmail = () => {
             console.error('Error updating machine status:', error.response ? error.response.data : error.message);
         }
     };
+
     const calculateDuration = (startTime) => {
         const start = moment(startTime);
         const now = moment();
@@ -45,14 +49,52 @@ const UserEmail = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setMachines(machines => [...machines]); // Trigger re-render to update durations
+            setMachines(machines => [...machines]);
         }, 1000);
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (email) {
+            axios.get(`http://localhost:8081/api/interested/is-interested?email=${email}`, { withCredentials: true })
+                .then(response => {
+                    console.log('Response from backend:', response.data); // Log the response data
+                    setInterested(response.data === 'true'); // Example conversion if necessary
+                })
+                .catch(error => {
+                    console.error('Error checking interest status:', error.response ? error.response.data : error.message);
+                });
+        }
+    }, [email]);
+    
+    useEffect(() => {
+        console.log(interested); // Log the updated value of interested
+    }, [interested]); // Add interested as a dependency
+    
+
+    
+
+
+    const handleInterestClick = async () => {
+        
+        try {
+            if (interested) {
+                await axios.delete('http://localhost:8081/api/interested/remove', { data: email, headers: { 'Content-Type': 'application/json' }, withCredentials: true });
+                setInterested(false);
+            } else {
+                await axios.post('http://localhost:8081/api/interested/add', email, { headers: { 'Content-Type': 'application/json' }, withCredentials: true });
+                setInterested(true);
+            }
+        } catch (error) {
+            console.error(`Error ${interested ? 'removing' : 'adding'} interest:`, error.response ? error.response.data : error.message);
+        }
+    };
 
     return (
         <div>
+            <button onClick={handleInterestClick}>
+                {interested ? 'I am not interested anymore' : 'Notify me when a machine gets free'}
+            </button>
             <h1>User Email</h1>
             <p>{email ? `Logged in as: ${email}` : 'Not logged in'}</p>
             <div>

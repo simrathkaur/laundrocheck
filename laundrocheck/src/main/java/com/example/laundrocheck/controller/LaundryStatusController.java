@@ -2,6 +2,7 @@ package com.example.laundrocheck.controller;
 
 import com.example.laundrocheck.model.LaundryStatus;
 import com.example.laundrocheck.repository.LaundryStatusRepository;
+import com.example.laundrocheck.service.EmailService;
 import com.example.laundrocheck.service.LaundryStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +16,19 @@ import java.util.List;
 public class LaundryStatusController {
 
     private final LaundryStatusRepository laundryStatusRepository;
+    private final EmailService emailService;
 
     @Autowired
-    public LaundryStatusController(LaundryStatusRepository laundryStatusRepository) {
+    public LaundryStatusController(LaundryStatusRepository laundryStatusRepository, EmailService emailService) {
         this.laundryStatusRepository = laundryStatusRepository;
+        this.emailService = emailService;
     }
 
     @GetMapping("/machine-status")
     public List<LaundryStatus> getAllMachineStatus() {
         return laundryStatusRepository.findAll();
     }
+
 
     @PutMapping("/machine/{id}/{action}")
     public LaundryStatus updateMachineStatus(@PathVariable Long id, @PathVariable String action, @RequestBody(required = false) String userEmail) {
@@ -44,14 +48,29 @@ public class LaundryStatusController {
                 if (machine.getInUse()) {
                     machine.setInUse(false);
                     machine.setDone(true);
+                    if (machine.getUserEmail() != null) {
+                        emailService.sendSimpleMessage(
+                                machine.getUserEmail(),
+                                "Laundry Done",
+                                "Your laundry in machine " + machine.getId() + " is done."
+                        );
+                    }
                 }
                 break;
             case "unload":
                 if (machine.getDone()) {
+                    if (machine.getUserEmail() != null) {
+                        emailService.sendSimpleMessage(
+                                machine.getUserEmail(),
+                                "Laundry Unloaded",
+                                "Your clothes are unloaded from machine " + machine.getId() + ". If it was not you, please pick up."
+                        );
+                    }
                     machine.setDone(false);
                     machine.setAvailable(true);
                     machine.setUserEmail(null);
                     machine.setStartTime(null);
+                    emailService.notifyInterestedUsers(machine.getId().toString());
                 }
                 break;
             default:
