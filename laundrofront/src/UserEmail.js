@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';  
 import 'moment-duration-format';
+import './UserEmail.css'; // Import your CSS file for styles
 
 const UserEmail = () => {
     const [interested, setInterested] = useState(false);
     const [email, setEmail] = useState('');
     const [machines, setMachines] = useState([]);
+    const [notification, setNotification] = useState(null); // State for showing pop-up notifications
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -15,7 +17,7 @@ const UserEmail = () => {
                 setEmail(response.data);
 
                 const machineResponse = await axios.get('http://localhost:8081/api/status/machine-status', { withCredentials: true });
-                setMachines(machineResponse.data);
+                setMachines(machineResponse.data.map(machine => ({ ...machine, processing: false })));
 
                 // Check if the user is already interested
                 const interestResponse = await axios.get(`http://localhost:8081/api/interested/is-interested?email=${response.data}`, { withCredentials: true });
@@ -29,14 +31,43 @@ const UserEmail = () => {
     }, []);
 
     const handleMachineClick = async (machineId, action) => {
+        // Set the processing state for the clicked machine
+        setMachines(prevMachines => prevMachines.map(machine => 
+            machine.id === machineId ? { ...machine, processing: true } : machine
+        ));
+
         try {
             const payload = action === 'start' ? { email } : {};
             const response = await axios.put(`http://localhost:8081/api/status/machine/${machineId}/${action}`, payload, { withCredentials: true });
             setMachines(prevMachines => prevMachines.map(machine => 
-                machine.id === machineId ? response.data : machine
+                machine.id === machineId ? { ...response.data, processing: false } : machine
             ));
+
+            // Show appropriate notification based on action
+            switch (action) {
+                case 'start':
+                    setNotification('You will be notified if someone sees your laundry is done. Leave a bag for unloading if you are late.');
+                    break;
+                case 'done':
+                    setNotification('Previous user has been notified.');
+                    break;
+                case 'unload':
+                    setNotification('Previous user has been notified. If it is not you, please unload in a bag/bucket.');
+                    break;
+                default:
+                    break;
+            }
+
+            // Clear notification after 5 seconds
+            setTimeout(() => {
+                setNotification(null);
+            }, 5000);
         } catch (error) {
             console.error('Error updating machine status:', error.response ? error.response.data : error.message);
+            // Reset processing state if there's an error
+            setMachines(prevMachines => prevMachines.map(machine => 
+                machine.id === machineId ? { ...machine, processing: false } : machine
+            ));
         }
     };
 
@@ -66,17 +97,12 @@ const UserEmail = () => {
                 });
         }
     }, [email]);
-    
+
     useEffect(() => {
         console.log(interested); // Log the updated value of interested
     }, [interested]); // Add interested as a dependency
-    
-
-    
-
 
     const handleInterestClick = async () => {
-        
         try {
             if (interested) {
                 await axios.delete('http://localhost:8081/api/interested/remove', { data: email, headers: { 'Content-Type': 'application/json' }, withCredentials: true });
@@ -91,7 +117,7 @@ const UserEmail = () => {
     };
 
     return (
-        <div>
+        <div style={{ position: 'relative' }}>
             <button onClick={handleInterestClick}>
                 {interested ? 'I am not interested anymore' : 'Notify me when a machine gets free'}
             </button>
@@ -106,23 +132,40 @@ const UserEmail = () => {
                             <p>Washing for: {calculateDuration(machine.startTime)}</p>
                         )}
                         {machine.available && (
-                            <button style={{ backgroundColor: 'green' }} onClick={() => handleMachineClick(machine.id, 'start')}>
-                                Click to use
+                            <button
+                                style={{ backgroundColor: 'green' }}
+                                onClick={() => handleMachineClick(machine.id, 'start')}
+                                disabled={machine.processing}
+                            >
+                                {machine.processing ? 'Processing...' : 'Click to use'}
                             </button>
                         )}
                         {machine.inUse && (
-                            <button style={{ backgroundColor: 'red' }} onClick={() => handleMachineClick(machine.id, 'done')}>
-                                Click if machine is done
+                            <button
+                                style={{ backgroundColor: 'red' }}
+                                onClick={() => handleMachineClick(machine.id, 'done')}
+                                disabled={machine.processing}
+                            >
+                                {machine.processing ? 'Notifying user...' : 'Click if machine is done'}
                             </button>
                         )}
                         {machine.done && (
-                            <button style={{ backgroundColor: 'yellow' }} onClick={() => handleMachineClick(machine.id, 'unload')}>
-                                Click if unloaded
+                            <button
+                                style={{ backgroundColor: 'yellow' }}
+                                onClick={() => handleMachineClick(machine.id, 'unload')}
+                                disabled={machine.processing}
+                            >
+                                {machine.processing ? 'Notifying user...' : 'Click if unloaded'}
                             </button>
                         )}
                     </div>
                 ))}
             </div>
+            {notification && (
+                <div className="notification">
+                    {notification}
+                </div>
+            )}
         </div>
     );
 };
