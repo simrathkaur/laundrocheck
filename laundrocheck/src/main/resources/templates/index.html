@@ -2,10 +2,91 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login with Google</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>LaundryCheck - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .window {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .window img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .ga_wrapper {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .ga_wrapper h2 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .ga_wrapper a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            position: relative; /* Ensure the icon's position is relative to the button */
+        }
+
+        .ga_wrapper a img {
+            position: absolute;
+            left: 10px; /* Adjust the position of the icon as needed */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px; /* Adjust the size of the icon */
+            height: auto;
+        }
+
+        .ga_wrapper a span {
+            margin-left: 10px; /* Add space between icon and text */
+        }
+
+        .ga_wrapper a:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-<h2>Login with Google</h2>
-<a href="/login/google">Login with Google</a>
+<div class="container">
+    <div class="window">
+        <form class="content">
+            <img src="https://s3.ap-south-1.amazonaws.com/ct-client-logos/logos/iiitb" alt="IIIT Bangalore Logo">
+            <div class="ga_wrapper">
+                <h2>Welcome to Laundro-check</h2>
+                <a href="/login/google">
+                    <img src="https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" alt="Google Icon">
+                    <span>Login with Google</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>

@@ -117,16 +117,17 @@ const UserEmail = () => {
     };
 
     return (
-        <div style={{ position: 'relative' }}>
-            <button onClick={handleInterestClick}>
-                {interested ? 'I am not interested anymore' : 'Notify me when a machine gets free'}
-            </button>
-            <h1>User Email</h1>
+        <div className="container" style={{ position: 'relative' }}>
+            <button className={`notify-button ${interested ? 'interested' : ''}`} onClick={handleInterestClick} >
+    {interested ? 'Turn Off Notifications Request' : 'Notify me when a Machine gets free'}
+</button>
+
+            <h1>Laundry Dashboard</h1>
             <p>{email ? `Logged in as: ${email}` : 'Not logged in'}</p>
-            <div>
+            <div className="machine-list">
                 {machines.map(machine => (
-                    <div key={machine.id}>
-                        <h3>Machine ID: {machine.id}</h3>
+                     <div key={machine.id} className="machine">
+                        <h3>Machine ID: {machine.id} {machine.id === 1 ? '(Left)' : '(Right)'}</h3>
                         <p>Status: {machine.available ? 'Available' : machine.inUse ? 'In Use' : 'Done'}</p>
                         {machine.inUse && machine.startTime && (
                             <p>Washing for: {calculateDuration(machine.startTime)}</p>
